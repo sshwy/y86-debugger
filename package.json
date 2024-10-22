@@ -2,9 +2,9 @@
   "name": "y86-debugger",
   "displayName": "y86-debugger",
   "description": "Y86 Debugger Extension",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "engines": {
-    "vscode": "^1.94.0"
+    "vscode": "^1.80.0"
   },
   "categories": [
     "Other"
@@ -20,17 +20,160 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "y86",
+        "extensions": [
+          ".ys"
+        ]
+      }
+    ],
+    "menus": {
+      "editor/title/run": [
+        {
+          "command": "extension.y86-debug.debugEditorContents",
+          "when": "resourceLangId == y86",
+          "group": "navigation@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "extension.y86-debug.debugEditorContents",
+          "when": "resourceLangId == y86"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "y86-debugger.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "extension.y86-debug.debugEditorContents",
+        "title": "Debug File",
+        "category": "Y86 Debug",
+        "enablement": "!inDebugMode",
+        "icon": "$(debug-alt)"
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "y86"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "y86",
+        "languages": [
+          "y86"
+        ],
+        "label": "Y86 Debug",
+        "program": "",
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to a text file.",
+                "default": "${workspaceFolder}/${command:AskForProgramName}"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after launch.",
+                "default": true
+              },
+              "trace": {
+                "type": "boolean",
+                "description": "Enable logging of the Debug Adapter Protocol.",
+                "default": true
+              },
+              "compileError": {
+                "type": "string",
+                "description": "Simulates a compile error in 'launch' request.",
+                "enum": [
+                  "default",
+                  "show",
+                  "hide"
+                ],
+                "enumDescriptions": [
+                  "default: show fake compile error to user",
+                  "show fake compile error to user",
+                  "do not show fake compile error to user"
+                ]
+              }
+            }
+          },
+          "attach": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to a text file.",
+                "default": "${workspaceFolder}/${command:AskForProgramName}"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after attach.",
+                "default": true
+              },
+              "trace": {
+                "type": "boolean",
+                "description": "Enable logging of the Debug Adapter Protocol.",
+                "default": true
+              },
+              "compileError": {
+                "type": "string",
+                "description": "Simulates a compile error in 'attach' request.",
+                "enum": [
+                  "default",
+                  "show",
+                  "hide"
+                ],
+                "enumDescriptions": [
+                  "default: show fake compile error to user",
+                  "show fake compile error to user",
+                  "do not show fake compile error to user"
+                ]
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "y86",
+            "request": "launch",
+            "name": "Ask for file name",
+            "program": "${workspaceFolder}/${command:AskForProgramName}",
+            "stopOnEntry": true
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Y86 Debug: Launch",
+            "description": "A new configuration for 'debugging' a user selected y86 file.",
+            "body": {
+              "type": "y86",
+              "request": "launch",
+              "name": "Ask for file name",
+              "program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
+              "stopOnEntry": true
+            }
+          }
+        ],
+        "variables": {
+          "AskForProgramName": "extension.y86-debug.getProgramName"
+        }
       }
     ]
   },
   "scripts": {
     "vscode:prepublish": "pnpm run build",
     "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
-    "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "build": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
